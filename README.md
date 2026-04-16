@@ -1,3 +1,142 @@
+# Intelligent and Sustainable Cloud-based Resource Management and Scheduling
+
+**Dissertation Project — Phase 1 Experiments**
+**Author:** Nandakishore
+**Framework:** CloudSim 7.0.1 | **Language:** Java | **Build Tool:** Maven
+
+---
+
+## Project Overview
+
+This project investigates how cloud computing resources can be managed **intelligently and sustainably** to maximise performance while minimising waste. The core research question driving Phase 1 is:
+
+> *How does increasing the number of virtual worker nodes affect job execution time when the workload is kept constant — and at what point does adding more infrastructure stop helping?*
+
+Phase 1 establishes the performance baseline by simulating a cloud environment, varying the number of Virtual Machines (VMs) from 1 to 5 while keeping the workload fixed at 2 jobs. The results expose a fundamental trade-off in cloud resource management — the exact point at which scaling infrastructure no longer improves performance and instead wastes energy and cost. This is directly relevant to real-world sustainability concerns in platforms like AWS, Google Cloud, and Microsoft Azure.
+
+---
+
+## Why This Matters
+
+Over-provisioning is one of the biggest inefficiencies in modern cloud computing. Data centres consume approximately 1–2% of global electricity, and a significant portion is wasted on idle compute resources. This research identifies the optimal VM-to-workload ratio — a foundational principle behind sustainable and cost-efficient cloud design.
+
+---
+
+## Phase 1 — Experiment Design
+
+All four experiments share the same physical infrastructure and workload. Only the number of VMs (worker nodes) changes.
+
+### Fixed Setup (Constant Across All Experiments)
+
+| Component | Configuration |
+|---|---|
+| Physical Host | 1 CPU core, 1000 MIPS |
+| Workload | 2 Cloudlets (jobs), 250,000 MI each |
+| VM CPU Speed | 250 MIPS per VM |
+| VM RAM | 512 MB per VM |
+| Scheduling Policy | Time-Shared |
+
+---
+
+## Experiment Files
+
+### `CloudSimEx1.java` — 1 VM, 2 Cloudlets (Baseline)
+Both jobs share one VM. The VM splits 250 MIPS equally — each job gets only 125 MIPS.
+**Expected finish time: 2000 seconds**
+
+### `CloudSimEx3.java` — 3 VMs, 2 Cloudlets
+Each job gets its own dedicated VM with full 250 MIPS. 1 VM sits idle.
+**Expected finish time: 1000 seconds — 2× faster than Ex1**
+
+### `CloudSimEx4.java` — 4 VMs, 2 Cloudlets
+Same result as Ex3. 2 VMs idle — wasting 500 MIPS and 1024 MB RAM.
+**Expected finish time: 1000 seconds**
+
+### `CloudSimEx5.java` — 5 VMs, 2 Cloudlets
+Same result as Ex3 and Ex4. 3 VMs idle — 75% of host MIPS wasted. Host RAM increased to 3072 MB to accommodate all 5 VMs.
+**Expected finish time: 1000 seconds**
+
+---
+
+## Results
+
+| Experiment | VMs | Idle VMs | MIPS per Job | Finish Time | Improvement |
+|---|---|---|---|---|---|
+| Ex1 | 1 | 0 | 125 MIPS | 2000 sec | baseline |
+| Ex3 | 3 | 1 | 250 MIPS | 1000 sec | 2× faster |
+| Ex4 | 4 | 2 | 250 MIPS | 1000 sec | 2× faster |
+| Ex5 | 5 | 3 | 250 MIPS | 1000 sec | 2× faster |
+
+```
+Finish
+ Time
+ (sec)
+ 2000 |  *
+      |   \
+      |    \
+ 1000 |     *-----------*-----------*
+      |
+      +----+-------+-------+-------+-------
+           1       3       4       5     VMs
+```
+
+Performance doubles from Ex1 to Ex3 then plateaus — proving performance is bounded by workload, not infrastructure size.
+
+---
+
+## Key Findings
+
+1. **VM isolation eliminates contention and halves execution time.** Dedicated VMs per job doubled performance versus shared access.
+2. **Over-provisioning has zero performance benefit.** Ex4 and Ex5 waste up to 75% of compute resources with no speed gain.
+3. **Optimal node count equals number of concurrent jobs.** Beyond this, every extra VM increases cost and energy with no return.
+4. **Scheduling policy determines contention behaviour.** Time-Shared reflects real-world cloud environments where workloads share physical infrastructure.
+
+---
+
+## How to Run
+
+```bash
+# Build
+mvn clean install
+
+# Run Experiment 1 (Baseline — 1 VM)
+mvn exec:java -pl modules/cloudsim-examples/ -Dexec.mainClass=org.cloudbus.cloudsim.examples.CloudSimEx1
+
+# Run Experiment 3 (3 VMs)
+mvn exec:java -pl modules/cloudsim-examples/ -Dexec.mainClass=org.cloudbus.cloudsim.examples.CloudSimEx3
+
+# Run Experiment 4 (4 VMs)
+mvn exec:java -pl modules/cloudsim-examples/ -Dexec.mainClass=org.cloudbus.cloudsim.examples.CloudSimEx4
+
+# Run Experiment 5 (5 VMs)
+mvn exec:java -pl modules/cloudsim-examples/ -Dexec.mainClass=org.cloudbus.cloudsim.examples.CloudSimEx5
+```
+
+---
+
+## Project Structure
+
+```
+cloudsim-7.0.1/
+└── modules/
+    └── cloudsim-examples/
+        └── src/main/java/org/cloudbus/cloudsim/examples/
+            ├── CloudSimEx1.java   ← Phase 1: Baseline — 1 VM, 2 jobs
+            ├── CloudSimEx3.java   ← Phase 1: Scale — 3 VMs, 2 jobs
+            ├── CloudSimEx4.java   ← Phase 1: Scale — 4 VMs, 2 jobs
+            └── CloudSimEx5.java   ← Phase 1: Scale — 5 VMs, 2 jobs
+```
+
+---
+
+## What Comes Next — Phase 2
+
+Phase 2 will scale workload alongside VMs and explore alternative scheduling policies (SpaceShared), heterogeneous VM configurations, and intelligent scheduling algorithms for optimal VM-to-job matching.
+
+---
+
+---
+
 # CloudSim: A Framework For Modeling And Simulation Of Cloud Computing Infrastructures And Services #
 
 Cloud Computing is the leading approach for delivering reliable, secure, fault-tolerant, sustainable, and scalable computational services. Hence timely, repeatable, and controllable methodologies for performance evaluation of new cloud applications and policies before their actual development are required. Because utilization of real testbeds limits the experiments to the scale of the testbed and makes the reproduction of results an extremely difficult undertaking, simulation may be used.
